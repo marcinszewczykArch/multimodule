@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+#  prometheus:
+#    image: prom/prometheus:latest
+#    container_name: prometheus
+#    volumes:
+#      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+#    ports:
+#      - "9090:9090"
+#    depends_on:
+#      - my-app-1
+#      - my-app-2
+#      - my-app-3
+#
+#  grafana:
+#    image: grafana/grafana:latest
+#    container_name: grafana
+#    environment:
+#      - GF_SECURITY_ADMIN_USER=admin
+#      - GF_SECURITY_ADMIN_PASSWORD=admin
+#    ports:
+#      - "3000:3000"
+#    depends_on:
+#      - prometheus
+
+  load-balancer:
+    build:
+      context: .                                 # <-- KONTEXT: cały projekt
+      dockerfile: modules/load-balancer/Dockerfile
+    container_name: load-balancer
+    ports:
+      - "8080:8080"
+    environment:
+      - BACKEND_URLS=http://my-app-1:8080,http://my-app-2:8080,http://my-app-3:8080
+    depends_on:
+      - my-app-1
+      - my-app-2
+      - my-app-3
+
+  my-app-1:
+    build:
+      context: .
+      dockerfile: modules/my-app/Dockerfile
+    image: my-app:latest
+    container_name: my-app-1
+    ports:
+      - "8081:8080"
+    environment:
+      - INSTANCE_NAME=my-app-1
+      - PORT=8081
+    stdin_open: true
+    tty: true
+
+  my-app-2:
+    image: my-app:latest
+    container_name: my-app-2
+    ports:
+      - "8082:8080"
+    environment:
+      - INSTANCE_NAME=my-app-2
+      - PORT=8082
+    stdin_open: true
+    tty: true
+
+  my-app-3:
+    image: my-app:latest
+    container_name: my-app-3
+    ports:
+      - "8083:8080"
+    environment:
+      - INSTANCE_NAME=my-app-3
+      - PORT=8083
+    stdin_open: true
+    tty: true
